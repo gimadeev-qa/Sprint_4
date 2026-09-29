@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.Set;
 
 /**
  * Page Object главной страницы Яндекс Самоката.
@@ -52,7 +53,6 @@ public class MainPage {
                 .click();
     }
 
-
     // Нажимаем верхнюю кнопку "Заказать"
     public void clickButtonOrderInTheHeader() {
         new WebDriverWait(driver, Duration.ofSeconds(5))
@@ -70,40 +70,26 @@ public class MainPage {
                 .click();
     }
 
-    /* вот так было, но firefox тест падал из-за прокрутки Кликаем по вопросу в разделе "Вопросы о важном"
-    public void questionClick(String question) {
-        By questionLocator = By.xpath("//div[contains(text(), '" + question + "')]");
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(questionLocator))
-                .click();
-    }*/
-
-    //вот так подсказала ИИ
-    //Кликаем по вопросу в разделе "Вопросы о важном"
+    // Кликаем по вопросу в разделе "Вопросы о важном"
+    // ИСПРАВЛЕНО: убран Thread.sleep(300). Вместо него используем явное ожидание
+    // видимости элемента и клик через Actions (надёжно для Firefox).
     public void questionClick(String question) {
         By questionLocator = By.xpath("//div[contains(text(), '" + question + "')]");
 
+        // Явное ожидание: элемент присутствует в DOM и видим
         WebElement questionElement = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(questionLocator));
+                .until(ExpectedConditions.visibilityOfElementLocated(questionLocator));
 
         // Прокручиваем элемент в центр экрана
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].scrollIntoView({block: 'center'});", questionElement);
 
-        // Небольшая пауза для завершения прокрутки (Firefox иногда не успевает)
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // Кликаем через Actions — надёжно и без JS-обмана
+        // Клик через Actions — надёжно и без JS-обмана
         new Actions(driver)
                 .moveToElement(questionElement)
                 .click()
                 .perform();
     }
-
 
     // Проверяем, что ответ на вопрос отображается
     public boolean answerIsDisplayed(String answer) {
@@ -136,11 +122,65 @@ public class MainPage {
 
     // Клик по логотипу Самоката
     public void clickScooterLogo() {
-        driver.findElement(scooterLogo).click();
+        new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(scooterLogo))
+                .click();
     }
 
     // Клик по логотипу Яндекса
+    // ИСПРАВЛЕНО: добавлено явное ожидание перед кликом.
     public void clickYandexLogo() {
-        driver.findElement(yandexLogo).click();
+        new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(yandexLogo))
+                .click();
+    }
+
+    // ИСПРАВЛЕНО: добавлен метод для открытия главной страницы,
+    // чтобы убрать driver.get() из тестов.
+    public void openMainPage(String url) {
+        driver.get(url);
+    }
+
+    // ИСПРАВЛЕНО: добавлен метод ожидания, что URL содержит заданную подстроку.
+    // Используется в тестах логотипов вместо WebDriverWait в тесте.
+    public void waitForUrlContains(String urlPart) {
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains(urlPart));
+    }
+
+    // Запоминаем handle текущего окна (до клика)
+    public String getCurrentWindowHandle() {
+        return driver.getWindowHandle();
+    }
+
+    // Ожидаем появление второго окна (вкладки)
+    public void waitForNewWindow() {
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.numberOfWindowsToBe(2));
+    }
+
+    // Переключаемся на окно, отличное от переданного
+    public void switchToWindowOtherThan(String originalWindow) {
+        Set<String> windows = driver.getWindowHandles();
+        for (String window : windows) {
+            if (!window.equals(originalWindow)) {
+                driver.switchTo().window(window);
+                return;
+            }
+        }
+        throw new IllegalStateException("Не найдено окно, отличное от " + originalWindow);
+    }
+
+    // ИСПРАВЛЕНО: добавлен метод для получения текущего URL,
+    // чтобы убрать driver.getCurrentUrl() из тестов.
+    public String getCurrentUrl() {
+        return driver.getCurrentUrl();
+    }
+
+    // ИСПРАВЛЕНО: добавлен метод для закрытия текущего окна и переключения
+    // на указанное окно.
+    public void closeCurrentWindowAndSwitchTo(String windowHandle) {
+        driver.close();
+        driver.switchTo().window(windowHandle);
     }
 }

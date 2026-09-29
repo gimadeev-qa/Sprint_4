@@ -4,7 +4,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openqa.selenium.WebDriver;
 import utils.DriverFactory;
 
 import static org.junit.Assert.assertTrue;
@@ -15,17 +14,15 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Parameterized.class)
 public class MainPageDropDownListFAQTests {
 
-    // Добавляем переменную для адреса, чтобы можно было её менять сразу
     private static final String MAIN_PAGE_URL = "https://qa-scooter.praktikum-services.ru/";
 
-    // JUnit сам откроет и закроет браузер вокруг каждого теста
     @Rule
     public DriverFactory driverFactory = new DriverFactory();
 
-    private WebDriver driver;
-
     private final String question;
     private final String answer;
+
+    private MainPage mainPage;
 
     public MainPageDropDownListFAQTests(String question, String answer) {
         this.question = question;
@@ -62,14 +59,13 @@ public class MainPageDropDownListFAQTests {
 
     @Before
     public void before() {
-        driver = driverFactory.getDriver();
+        mainPage = new MainPage(driverFactory.getDriver());
     }
 
     @Test
     public void testAccordion() {
-        driver.get(MAIN_PAGE_URL);
-
-        MainPage mainPage = new MainPage(driver);
+        // ИСПРАВЛЕНО: driver.get() заменён на mainPage.openMainPage()
+        mainPage.openMainPage(MAIN_PAGE_URL);
         mainPage.closeCookie();
         mainPage.questionClick(question);
 

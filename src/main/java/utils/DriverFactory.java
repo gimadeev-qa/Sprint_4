@@ -19,7 +19,7 @@ public class DriverFactory extends ExternalResource {
 
     // Определяем, какой браузер запускать
     public void init() {
-        String browser = System.getProperty("browser", "firefox");
+        String browser = System.getProperty("browser", "chrome");
         if ("firefox".equalsIgnoreCase(browser)) {
             initFirefox();
         } else {

@@ -2,12 +2,8 @@ import model.MainPage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import utils.DriverFactory;
-import java.time.Duration;
-import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -20,19 +16,17 @@ import static org.junit.Assert.assertTrue;
 public class MainPageLogoNavigationTests {
 
     private static final String MAIN_PAGE_URL = "https://qa-scooter.praktikum-services.ru/";
-
     private static final String SCOOTER_BASE_URL = "https://qa-scooter.praktikum-services.ru/";
-
-    private static final String YANDEX_URL_PART = "https:/yandex.ru";
+    private static final String YANDEX_URL_PART = "https://yandex.ru";
 
     @Rule
     public DriverFactory driverFactory = new DriverFactory();
 
-    private WebDriver driver;
+    private MainPage mainPage;
 
     @Before
     public void before() {
-        driver = driverFactory.getDriver();
+        mainPage = new MainPage(driverFactory.getDriver());
     }
 
     /**
@@ -40,18 +34,16 @@ public class MainPageLogoNavigationTests {
      */
     @Test
     public void testScooterLogoOpensMainPage() {
-        driver.get(MAIN_PAGE_URL);
-
-        MainPage mainPage = new MainPage(driver);
+        mainPage.openMainPage(MAIN_PAGE_URL);
         mainPage.closeCookie();
         mainPage.clickScooterLogo();
 
-        new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.urlContains(SCOOTER_BASE_URL));
+        // ИСПРАВЛЕНО: WebDriverWait заменён на mainPage.waitForUrlContains()
+        mainPage.waitForUrlContains(SCOOTER_BASE_URL);
 
-        // Проверяем, что мы всё ещё на главной Самоката
+        // ИСПРАВЛЕНО: driver.getCurrentUrl() заменён на mainPage.getCurrentUrl()
         assertTrue("Клик по логотипу Самоката не привёл на главную страницу",
-                driver.getCurrentUrl().startsWith(SCOOTER_BASE_URL));
+                mainPage.getCurrentUrl().startsWith(SCOOTER_BASE_URL));
     }
 
     /**
@@ -59,43 +51,31 @@ public class MainPageLogoNavigationTests {
      */
     @Test
     public void testYandexLogoOpensYandexInNewTab() {
-        driver.get(MAIN_PAGE_URL);
-
-        MainPage mainPage = new MainPage(driver);
+        mainPage.openMainPage(MAIN_PAGE_URL);
         mainPage.closeCookie();
 
-        // Запоминаем текущую вкладку
-        String originalWindow = driver.getWindowHandle();
+        // Запоминаем исходное окно
+        String originalWindow = mainPage.getCurrentWindowHandle();
 
-        // Кликаем по логотипу Яндекса
+        //  Кликаем по логотипу Яндекса
         mainPage.clickYandexLogo();
 
-        // Ждём появления второй вкладки
-        new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.numberOfWindowsToBe(2));
+        //  Ждём появления второй вкладки
+        mainPage.waitForNewWindow();
 
         // Переключаемся на новую вкладку
-        Set<String> windows = driver.getWindowHandles();
-        for (String window : windows) {
-            if (!window.equals(originalWindow)) {
-                driver.switchTo().window(window);
-                break;
-            }
-        }
+        mainPage.switchToWindowOtherThan(originalWindow);
 
-        // Ждём загрузки URL новой вкладки
-        new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.urlContains(YANDEX_URL_PART));
-
-        String newTabUrl = driver.getCurrentUrl();
+        // Берем URLновой вкладки и сравниваем с Яндексом
+        String newTabUrl = mainPage.getCurrentUrl();
         assertTrue("Логотип Яндекса не открыл yandex.ru. Текущий URL: " + newTabUrl,
                 newTabUrl.contains(YANDEX_URL_PART));
 
         // Закрываем вкладку Яндекса и возвращаемся на исходную
-        driver.close();
-        driver.switchTo().window(originalWindow);
+        mainPage.closeCurrentWindowAndSwitchTo(originalWindow);
 
         assertEquals("После возврата должны быть на исходной странице",
-                MAIN_PAGE_URL, driver.getCurrentUrl());
+                MAIN_PAGE_URL, mainPage.getCurrentUrl());
     }
+
 }

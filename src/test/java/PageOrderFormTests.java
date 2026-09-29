@@ -4,15 +4,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openqa.selenium.WebDriver;
 import utils.DriverFactory;
 
 import static org.junit.Assert.assertTrue;
 
 /**
  * Позитивный сценарий заказа самоката с двумя наборами данных.
- * Драйвер берём из @Rule DriverFactory, чтобы браузер
- * автоматически закрывался после каждого теста.
  */
 @RunWith(Parameterized.class)
 public class PageOrderFormTests {
@@ -23,8 +20,6 @@ public class PageOrderFormTests {
     @Rule
     public DriverFactory driverFactory = new DriverFactory();
 
-    private WebDriver driver;
-
     private final String name;
     private final String lastName;
     private final String address;
@@ -34,6 +29,8 @@ public class PageOrderFormTests {
     private final String rentalPeriod;
     private final String colorScooter;
     private final String comment;
+
+    private OrderForm orderForm;
 
     public PageOrderFormTests(String name, String lastName, String address,
                               String metroStation, String phone,
@@ -62,15 +59,13 @@ public class PageOrderFormTests {
 
     @Before
     public void before() {
-        driver = driverFactory.getDriver();
+        orderForm = new OrderForm(driverFactory.getDriver());
     }
 
     @Test
     public void testMakingOrder() {
-        driver.get(ORDER_PAGE_URL);
-
-        OrderForm orderForm = new OrderForm(driver);
-
+        // ИСПРАВЛЕНО: driver.get() заменён на orderForm.openOrderPage()
+        orderForm.openOrderPage(ORDER_PAGE_URL);
         orderForm.closeCookie();
 
         // Первая часть формы: "Для кого самокат"

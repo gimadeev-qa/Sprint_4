@@ -3,7 +3,6 @@ import model.StatusPage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 import utils.DriverFactory;
 
 import static org.junit.Assert.assertTrue;
@@ -19,24 +18,24 @@ public class OrderNotFoundPageTests {
     @Rule
     public DriverFactory driverFactory = new DriverFactory();
 
-    private WebDriver driver;
+    private MainPage mainPage;
+    private StatusPage statusPage;
 
     @Before
     public void before() {
-        driver = driverFactory.getDriver();
+        mainPage = new MainPage(driverFactory.getDriver());
+        statusPage = new StatusPage(driverFactory.getDriver());
     }
 
     @Test
     public void testWrongOrderNumber() {
-        driver.get(MAIN_PAGE_URL);
-
-        MainPage mainPage = new MainPage(driver);
+        // ИСПРАВЛЕНО: driver.get() заменён на mainPage.openMainPage()
+        mainPage.openMainPage(MAIN_PAGE_URL);
         mainPage.closeCookie();
         mainPage.clickOrderStatus();
         mainPage.enterOrderNumber("99999999");
         mainPage.clickGo();
 
-        StatusPage statusPage = new StatusPage(driver);
         assertTrue("Сообщение 'Такого заказа нет' не отображается",
                 statusPage.isNotFoundMessageDisplayed());
     }

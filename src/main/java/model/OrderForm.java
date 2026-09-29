@@ -130,7 +130,7 @@ public class OrderForm {
         driver.findElement(By.id(colorScooter)).click();
     }
 
-    // Заполняем поле Комментарий
+    // Заполняем поле Коментарий
     public void testComment(String comment) {
         driver.findElement(fieldComment).sendKeys(comment);
     }
@@ -154,5 +154,11 @@ public class OrderForm {
         new WebDriverWait(driver, Duration.ofSeconds(7))
                 .until(ExpectedConditions.visibilityOfElementLocated(messageOrderOk));
         return driver.findElement(messageOrderOk).getText();
+    }
+
+    // ИСПРАВЛЕНО: добавлен метод для открытия страницы заказа,
+    // чтобы убрать driver.get() из тестов.
+    public void openOrderPage(String url) {
+        driver.get(url);
     }
 }

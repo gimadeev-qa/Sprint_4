@@ -5,7 +5,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openqa.selenium.WebDriver;
 import utils.DriverFactory;
 
 import static org.junit.Assert.assertTrue;
@@ -22,9 +21,10 @@ public class MainPageOrderButtonTests {
     @Rule
     public DriverFactory driverFactory = new DriverFactory();
 
-    private WebDriver driver;
-
     private final String selectButton;
+
+    private MainPage mainPage;
+    private OrderForm orderForm;
 
     public MainPageOrderButtonTests(String selectButton) {
         this.selectButton = selectButton;
@@ -40,16 +40,14 @@ public class MainPageOrderButtonTests {
 
     @Before
     public void before() {
-        driver = driverFactory.getDriver();
+        mainPage = new MainPage(driverFactory.getDriver());
+        orderForm = new OrderForm(driverFactory.getDriver());
     }
 
     @Test
     public void testButtonOrder() {
-        driver.get(MAIN_PAGE_URL);
-
-        MainPage mainPage = new MainPage(driver);
-        OrderForm orderForm = new OrderForm(driver);
-
+        // ИСПРАВЛЕНО: driver.get() заменён на mainPage.openMainPage()
+        mainPage.openMainPage(MAIN_PAGE_URL);
         mainPage.closeCookie();
 
         if ("Проверить верхнюю кнопку".equals(selectButton)) {
